@@ -1,1 +1,107 @@
-<h1>a</h1>
+
+<meta charset="utf-8"/>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.0/mustache.min.js"></script>
+<script>
+// Cookieから読み込み
+function readCookie(key) {
+    var body = $.cookie(key);
+    if (!body) {
+        body = "00時00分に....";
+    }
+    return body;
+}
+
+// Cookieへ保存
+function writeCookie(key,body) {
+  $.cookie(key, body, { expires: 365 });
+}
+// １桁の数値に０追加
+function addZero(n) {
+  if (n < 10) {
+    n = "0" + n;
+  }
+  return n;
+}
+
+// 現時刻を5分切り上げ
+function roundUp5Minutes() {
+  let d = new Date();
+  let a = d.getMinutes() % 5;
+  if (a > 0) {
+    d.setMinutes(d.getMinutes() + (5-a));
+  }
+  let h = addZero(d.getHours());
+  let m = addZero(d.getMinutes());
+	  
+  return {
+    "hours": h,
+    "minutes": m
+  }
+}
+
+function setMsg(key, body) {
+    let d = roundUp5Minutes();
+    body = body.replace(/(\d+)時/g, d.hours+"時");
+    body = body.replace(/(\d+)分/g, d.minutes+"分");
+    $("#"+key).val(decodeURIComponent(body));
+}
+
+function onClickCopy() {
+  $(this).prev().select();
+  document.execCommand('copy');
+}
+function onChangeStart() {
+    let body = $("#start").val();
+    writeCookie("start",body);
+    setMsg("start", body);
+}
+function onChangeEnd() {
+    let body = $("#end").val();
+    writeCookie("end",body);
+    setMsg("end", body);
+}
+    
+$(document).ready(() => {
+    let start = readCookie("start");
+    let end = readCookie("end");
+    
+    setMsg("start", start);
+    setMsg("end", end);
+    
+    $("#start-btn").click(onClickCopy);
+    $("#end-btn").click(onClickCopy);
+    $("#start").change(onChangeStart);
+    $("#end").change(onChangeEnd);
+});
+</script>
+<style>
+  textarea {
+    width:300px;
+    height:100px;
+  }
+  input {
+    width:300px;
+  }
+  span {
+    font-size:0.5em;
+  }
+  h2 {
+    font-size:1.2em;
+  }
+</style>
+本文丸ごとCookieへ保存し、本文内にある「12時34分」という表記だけ現時刻で置き換えます
+<h2>開始</h2>
+<blockquote>
+  <textarea id="start"></textarea>
+  <button id="start-btn">Copy</button><br>
+  <span>時刻は現時刻を5分単位で切り上げ</span>
+</blockquote>
+<h2>終了</h2>
+<blockquote>
+  <textarea id="end">
+  </textarea>
+  <button id="end-btn">Copy</button><br>
+  <span>時刻は現時刻を5分単位で切り上げ</span>
+</blockquote>
